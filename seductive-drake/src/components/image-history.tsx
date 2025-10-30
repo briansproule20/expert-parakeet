@@ -9,7 +9,7 @@ import {
   isImageActionable,
 } from '@/lib/image-actions';
 import type { GeneratedImage } from '@/lib/types';
-import { Copy, Download, Edit } from 'lucide-react';
+import { Copy, Download, Edit, Trash2 } from 'lucide-react';
 import NextImage from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ImageDetailsDialog } from './image-details-dialog';
@@ -35,7 +35,7 @@ const LoadingTimer = React.memo(function LoadingTimer({
 
   const elapsed = (Date.now() - startTime.getTime()) / 1000;
   return (
-    <div className="text-xs text-gray-500 font-mono">{elapsed.toFixed(1)}s</div>
+    <div className="text-xs text-stone-300 font-mono">{elapsed.toFixed(1)}s</div>
   );
 });
 
@@ -43,12 +43,14 @@ interface ImageHistoryItemProps {
   image: GeneratedImage;
   onAddToInput: (files: File[]) => void;
   onImageClick: (image: GeneratedImage) => void;
+  onDelete: (imageId: string) => void;
 }
 
 const ImageHistoryItem = React.memo(function ImageHistoryItem({
   image,
   onAddToInput,
   onImageClick,
+  onDelete,
 }: ImageHistoryItemProps) {
   const handleAddToInput = useCallback(() => {
     if (!isImageActionable(image)) return;
@@ -72,6 +74,11 @@ const ImageHistoryItem = React.memo(function ImageHistoryItem({
     await handleImageCopy(image.imageUrl!);
   }, [image]);
 
+  const handleDelete = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(image.id);
+  }, [image.id, onDelete]);
+
   return (
     <div
       onClick={handleImageClick}
@@ -93,8 +100,8 @@ const ImageHistoryItem = React.memo(function ImageHistoryItem({
         </div>
       ) : image.error ? (
         <div className="flex flex-col items-center justify-center h-full space-y-2 p-4">
-          <div className="text-red-500 text-sm">⚠️ Failed</div>
-          <div className="text-xs text-gray-500 text-center">{image.error}</div>
+          <div className="text-red-400 text-sm">⚠️ Failed</div>
+          <div className="text-xs text-stone-300 text-center">{image.error}</div>
         </div>
       ) : image.imageUrl ? (
         <>
@@ -145,10 +152,19 @@ const ImageHistoryItem = React.memo(function ImageHistoryItem({
             >
               <Edit size={14} />
             </Button>
+            <Button
+              size="sm"
+              onClick={handleDelete}
+              aria-label="Delete this image"
+              title="Delete image"
+              className="h-8 w-8 p-0 bg-red-500/90 hover:bg-red-600 shadow-lg text-white hover:text-white cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150 focus:ring-2 focus:ring-red-500"
+            >
+              <Trash2 size={14} />
+            </Button>
           </div>
         </>
       ) : (
-        <div className="flex items-center justify-center h-full text-gray-400">
+        <div className="flex items-center justify-center h-full text-stone-300">
           No image
         </div>
       )}
@@ -159,11 +175,15 @@ const ImageHistoryItem = React.memo(function ImageHistoryItem({
 interface ImageHistoryProps {
   imageHistory: GeneratedImage[];
   onAddToInput: (files: File[]) => void;
+  onDeleteImage: (imageId: string) => void;
+  onClearAll: () => void;
 }
 
 export const ImageHistory = React.memo(function ImageHistory({
   imageHistory,
   onAddToInput,
+  onDeleteImage,
+  onClearAll,
 }: ImageHistoryProps) {
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(
     null
@@ -182,7 +202,18 @@ export const ImageHistory = React.memo(function ImageHistory({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-serif font-semibold text-stone-100">Generated Images</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-serif font-semibold text-stone-100">Generated Images</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onClearAll}
+          className="text-stone-300 border-stone-700 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500"
+        >
+          <Trash2 size={14} className="mr-2" />
+          Clear All
+        </Button>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 transition-all duration-300 ease-out">
         {imageHistory.map(image => (
           <ImageHistoryItem
@@ -190,6 +221,7 @@ export const ImageHistory = React.memo(function ImageHistory({
             image={image}
             onAddToInput={onAddToInput}
             onImageClick={handleImageClick}
+            onDelete={onDeleteImage}
           />
         ))}
       </div>

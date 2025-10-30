@@ -35,6 +35,7 @@ import type {
   ModelOption,
 } from '@/lib/types';
 import { ImageHistory } from './image-history';
+import { saveImageToDB, loadImagesFromDB, deleteImageFromDB, clearAllImagesFromDB } from '@/lib/image-storage';
 
 declare global {
   interface Window {
@@ -104,7 +105,21 @@ async function editImage(request: EditImageRequest): Promise<ImageResponse> {
 export default function ImageGenerator() {
   const [model, setModel] = useState<ModelOption>('gemini');
   const [imageHistory, setImageHistory] = useState<GeneratedImage[]>([]);
+  const [isLoadingFromDB, setIsLoadingFromDB] = useState(true);
   const promptInputRef = useRef<HTMLFormElement>(null);
+
+  // Load images from IndexedDB on mount
+  useEffect(() => {
+    loadImagesFromDB()
+      .then((images) => {
+        setImageHistory(images);
+        setIsLoadingFromDB(false);
+      })
+      .catch((error) => {
+        console.error('Failed to load images from IndexedDB:', error);
+        setIsLoadingFromDB(false);
+      });
+  }, []);
 
   // Handle adding files to the input from external triggers (like from image history)
   const handleAddToInput = useCallback((files: File[]) => {
@@ -119,6 +134,30 @@ export default function ImageGenerator() {
     const actions = window.__promptInputActions;
     if (actions) {
       actions.clear();
+    }
+  }, []);
+
+  // Handle deleting a single image
+  const handleDeleteImage = useCallback((imageId: string) => {
+    // Remove from state
+    setImageHistory(prev => prev.filter(img => img.id !== imageId));
+
+    // Remove from IndexedDB
+    deleteImageFromDB(imageId).catch(error => {
+      console.error('Failed to delete image from IndexedDB:', error);
+    });
+  }, []);
+
+  // Handle clearing all images
+  const handleClearAll = useCallback(() => {
+    if (confirm('Are you sure you want to delete all generated images?')) {
+      // Clear state
+      setImageHistory([]);
+
+      // Clear IndexedDB
+      clearAllImagesFromDB().catch(error => {
+        console.error('Failed to clear all images from IndexedDB:', error);
+      });
     }
   }, []);
 
@@ -208,6 +247,11 @@ export default function ImageGenerator() {
       // Add to history immediately for responsive UI
       setImageHistory(prev => [placeholderImage, ...prev]);
 
+      // Save placeholder to IndexedDB
+      saveImageToDB(placeholderImage).catch(error => {
+        console.error('Failed to save placeholder to IndexedDB:', error);
+      });
+
       try {
         let imageUrl: ImageResponse['imageUrl'];
 
@@ -250,11 +294,17 @@ export default function ImageGenerator() {
         }
 
         // Update the existing placeholder entry with the result
+        const updatedImage = { ...placeholderImage, imageUrl, isLoading: false };
         setImageHistory(prev =>
           prev.map(img =>
-            img.id === imageId ? { ...img, imageUrl, isLoading: false } : img
+            img.id === imageId ? updatedImage : img
           )
         );
+
+        // Save updated image to IndexedDB
+        saveImageToDB(updatedImage).catch(error => {
+          console.error('Failed to save image to IndexedDB:', error);
+        });
       } catch (error) {
         console.error(
           `Error ${isEdit ? 'editing' : 'generating'} image:`,
@@ -262,20 +312,24 @@ export default function ImageGenerator() {
         );
 
         // Update the placeholder entry with error state
+        const errorImage = {
+          ...placeholderImage,
+          isLoading: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to generate image',
+        };
         setImageHistory(prev =>
           prev.map(img =>
-            img.id === imageId
-              ? {
-                  ...img,
-                  isLoading: false,
-                  error:
-                    error instanceof Error
-                      ? error.message
-                      : 'Failed to generate image',
-                }
-              : img
+            img.id === imageId ? errorImage : img
           )
         );
+
+        // Save error state to IndexedDB
+        saveImageToDB(errorImage).catch(err => {
+          console.error('Failed to save error state to IndexedDB:', err);
+        });
       }
     },
     [model]
@@ -342,6 +396,8 @@ export default function ImageGenerator() {
       <ImageHistory
         imageHistory={imageHistory}
         onAddToInput={handleAddToInput}
+        onDeleteImage={handleDeleteImage}
+        onClearAll={handleClearAll}
       />
     </div>
   );
