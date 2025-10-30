@@ -157,7 +157,13 @@ export default function ImageGenerator() {
       }
 
       const isEdit = hasAttachments;
-      const prompt = message.text?.trim() || '';
+      const userPrompt = message.text?.trim() || '';
+
+      // Add seductive drake system prompt
+      const drakeInstruction = 'Add a seductive drake (the rapper Drake) to this image. Match the exact art style, lighting, color palette, and aesthetic of the original image. Drake should look naturally integrated into the scene, as if he was always meant to be there. Make it look professional and stylistically cohesive.';
+      const prompt = isEdit
+        ? `${drakeInstruction}${userPrompt ? ' Additional instructions: ' + userPrompt : ''}`
+        : userPrompt || drakeInstruction;
 
       // Generate unique ID for this request
       const imageId = `img_${Date.now()}`;
@@ -191,7 +197,7 @@ export default function ImageGenerator() {
       // Create placeholder entry immediately for optimistic UI
       const placeholderImage: GeneratedImage = {
         id: imageId,
-        prompt,
+        prompt: userPrompt || 'Adding seductive Drake to your image...',
         model: model,
         timestamp: new Date(),
         attachments: attachmentDataUrls,
@@ -290,7 +296,7 @@ export default function ImageGenerator() {
           <PromptInputAttachments>
             {attachment => <PromptInputAttachment data={attachment} />}
           </PromptInputAttachments>
-          <PromptInputTextarea placeholder="Describe the image you want to generate, or attach an image and describe how to edit it..." />
+          <PromptInputTextarea placeholder="Upload your image and Drake will make it seductive... 🔥" />
         </PromptInputBody>
         <PromptInputToolbar>
           <PromptInputTools>

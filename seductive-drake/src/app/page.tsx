@@ -40,10 +40,11 @@ export default async function Home() {
   return (
     <div className="flex flex-col h-screen p-2 sm:p-4 max-w-6xl mx-auto">
       {/* Header with title and token display */}
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full mb-4 sm:mb-8 p-4 sm:p-6 bg-gradient-to-r from-slate-50 to-gray-100 rounded-xl border border-gray-200 shadow-sm gap-3 sm:gap-0">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full mb-4 sm:mb-8 p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 rounded-lg border border-slate-700/50 shadow-2xl gap-3 sm:gap-0">
         <div className="flex items-center space-x-3">
-          <h1 className="text-2xl sm:text-3xl font-mono bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-            Echo Image Gen
+          <span className="text-3xl sm:text-4xl">🦆</span>
+          <h1 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-blue-200 via-slate-300 to-purple-200 bg-clip-text text-transparent">
+            Seductive Drake Generator
           </h1>
         </div>
         <div className="flex items-center gap-3">
