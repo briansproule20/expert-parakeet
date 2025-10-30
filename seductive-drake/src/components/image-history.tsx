@@ -94,15 +94,41 @@ const ImageHistoryItem = React.memo(function ImageHistoryItem({
       className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group cursor-pointer hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
     >
       {image.isLoading ? (
-        <div className="flex flex-col items-center justify-center h-full space-y-2 p-4">
-          <Skeleton className="h-16 w-16 rounded-lg" />
-          <LoadingTimer startTime={image.timestamp} />
-        </div>
+        <>
+          <div className="flex flex-col items-center justify-center h-full space-y-2 p-4">
+            <Skeleton className="h-16 w-16 rounded-lg" />
+            <LoadingTimer startTime={image.timestamp} />
+          </div>
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+            <Button
+              size="sm"
+              onClick={handleDelete}
+              aria-label="Cancel and delete this request"
+              title="Cancel request"
+              className="h-8 w-8 p-0 bg-red-500/90 hover:bg-red-600 shadow-lg text-white hover:text-white cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150 focus:ring-2 focus:ring-red-500"
+            >
+              <Trash2 size={14} />
+            </Button>
+          </div>
+        </>
       ) : image.error ? (
-        <div className="flex flex-col items-center justify-center h-full space-y-2 p-4">
-          <div className="text-red-400 text-sm">⚠️ Failed</div>
-          <div className="text-xs text-stone-300 text-center">{image.error}</div>
-        </div>
+        <>
+          <div className="flex flex-col items-center justify-center h-full space-y-2 p-4">
+            <div className="text-red-400 text-sm">⚠️ Failed</div>
+            <div className="text-xs text-stone-300 text-center">{image.error}</div>
+          </div>
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+            <Button
+              size="sm"
+              onClick={handleDelete}
+              aria-label="Delete this failed image"
+              title="Delete failed image"
+              className="h-8 w-8 p-0 bg-red-500/90 hover:bg-red-600 shadow-lg text-white hover:text-white cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150 focus:ring-2 focus:ring-red-500"
+            >
+              <Trash2 size={14} />
+            </Button>
+          </div>
+        </>
       ) : image.imageUrl ? (
         <>
           <NextImage
