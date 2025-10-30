@@ -296,7 +296,7 @@ export default function ImageGenerator() {
           <PromptInputAttachments>
             {attachment => <PromptInputAttachment data={attachment} />}
           </PromptInputAttachments>
-          <PromptInputTextarea placeholder="Upload your image and Drake will make it seductive... 🔥" />
+          <PromptInputTextarea placeholder="Upload your photo and let Drake work his magic... 🔥" className="font-sans" />
         </PromptInputBody>
         <PromptInputToolbar>
           <PromptInputTools>

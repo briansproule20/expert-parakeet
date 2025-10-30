@@ -182,7 +182,7 @@ export const ImageHistory = React.memo(function ImageHistory({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Generated Images</h3>
+      <h3 className="text-lg font-serif font-semibold text-stone-100">Generated Images</h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 transition-all duration-300 ease-out">
         {imageHistory.map(image => (
           <ImageHistoryItem

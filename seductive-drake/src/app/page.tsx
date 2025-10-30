@@ -38,14 +38,19 @@ export default async function Home() {
 
   // Main application interface
   return (
-    <div className="flex flex-col h-screen p-2 sm:p-4 max-w-6xl mx-auto">
+    <div className="flex flex-col h-screen p-2 sm:p-4 max-w-6xl mx-auto bg-gradient-to-br from-stone-950 via-neutral-900 to-stone-900">
       {/* Header with title and token display */}
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full mb-4 sm:mb-8 p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 rounded-lg border border-slate-700/50 shadow-2xl gap-3 sm:gap-0">
-        <div className="flex items-center space-x-3">
-          <span className="text-3xl sm:text-4xl">🦆</span>
-          <h1 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-blue-200 via-slate-300 to-purple-200 bg-clip-text text-transparent">
-            Seductive Drake Generator
-          </h1>
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full mb-4 sm:mb-8 p-6 sm:p-8 bg-gradient-to-br from-amber-900/30 via-orange-950/40 to-amber-950/30 rounded-lg border border-amber-700/30 shadow-2xl backdrop-blur-sm gap-3 sm:gap-0">
+        <div className="flex items-center space-x-4">
+          <span className="text-4xl sm:text-5xl">🦆</span>
+          <div className="flex flex-col">
+            <h1 className="text-3xl sm:text-5xl font-serif font-bold italic bg-gradient-to-r from-stone-100 via-amber-50 to-stone-200 bg-clip-text text-transparent tracking-tight leading-tight">
+              Seductive Drake
+            </h1>
+            <p className="text-xs sm:text-sm font-sans font-light text-stone-300/70 tracking-widest uppercase mt-1">
+              Image Generator
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {/* Echo token display widget */}
@@ -60,7 +65,7 @@ export default async function Home() {
 
         {/* Overlay when not signed in */}
         {!_isSignedIn && (
-          <div className="absolute inset-0 backdrop-blur-[2px] bg-white/30 flex items-center justify-center rounded-xl border border-gray-300">
+          <div className="absolute inset-0 backdrop-blur-[2px] bg-amber-950/40 flex items-center justify-center rounded-xl border border-amber-700/30">
             <EchoSignIn />
           </div>
         )}
