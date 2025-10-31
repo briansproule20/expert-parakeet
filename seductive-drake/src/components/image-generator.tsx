@@ -25,7 +25,6 @@ import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { fileToDataUrl } from '@/lib/image-utils';
 import type {
   EditImageRequest,
   GeneratedImage,
@@ -61,6 +60,24 @@ const models: ModelConfig[] = [
  */
 
 // ===== API FUNCTIONS =====
+async function uploadImageToBlob(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('/api/upload-image', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to upload image: ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.url;
+}
+
 async function generateImage(
   request: GenerateImageRequest
 ): Promise<ImageResponse> {
@@ -105,7 +122,6 @@ async function editImage(request: EditImageRequest): Promise<ImageResponse> {
 export default function ImageGenerator() {
   const [model, setModel] = useState<ModelOption>('gemini');
   const [imageHistory, setImageHistory] = useState<GeneratedImage[]>([]);
-  const [isLoadingFromDB, setIsLoadingFromDB] = useState(true);
   const promptInputRef = useRef<HTMLFormElement>(null);
 
   // Load images from IndexedDB on mount
@@ -113,11 +129,9 @@ export default function ImageGenerator() {
     loadImagesFromDB()
       .then((images) => {
         setImageHistory(images);
-        setIsLoadingFromDB(false);
       })
       .catch((error) => {
         console.error('Failed to load images from IndexedDB:', error);
-        setIsLoadingFromDB(false);
       });
   }, []);
 
@@ -207,8 +221,8 @@ export default function ImageGenerator() {
       // Generate unique ID for this request
       const imageId = `img_${Date.now()}`;
 
-      // Convert attachment blob URLs to permanent data URLs for persistent display
-      const attachmentDataUrls =
+      // Upload attachments to Vercel Blob Storage and get permanent URLs
+      const attachmentBlobUrls =
         message.files && message.files.length > 0
           ? await Promise.all(
               message.files
@@ -217,17 +231,17 @@ export default function ImageGenerator() {
                   try {
                     const response = await fetch(f.url);
                     const blob = await response.blob();
-                    return await fileToDataUrl(
-                      new File([blob], f.filename || 'image', {
-                        type: f.mediaType,
-                      })
-                    );
+                    const file = new File([blob], f.filename || 'image', {
+                      type: f.mediaType,
+                    });
+                    // Upload to Vercel Blob and get permanent URL
+                    return await uploadImageToBlob(file);
                   } catch (error) {
                     console.error(
-                      'Failed to convert attachment to data URL:',
+                      'Failed to upload attachment to blob storage:',
                       error
                     );
-                    return f.url; // fallback
+                    throw error;
                   }
                 })
             )
@@ -239,7 +253,7 @@ export default function ImageGenerator() {
         prompt: userPrompt || 'Adding seductive Drake to your image...',
         model: model,
         timestamp: new Date(),
-        attachments: attachmentDataUrls,
+        attachments: attachmentBlobUrls,
         isEdit,
         isLoading: true,
       };
@@ -256,31 +270,15 @@ export default function ImageGenerator() {
         let imageUrl: ImageResponse['imageUrl'];
 
         if (isEdit) {
-          const imageFiles =
-            message.files?.filter(
-              file =>
-                file.mediaType?.startsWith('image/') || file.type === 'file'
-            ) || [];
-
-          if (imageFiles.length === 0) {
+          if (!attachmentBlobUrls || attachmentBlobUrls.length === 0) {
             throw new Error('No image files found in attachments');
           }
 
           try {
-            const imageUrls = await Promise.all(
-              imageFiles.map(async imageFile => {
-                // Convert blob URL to data URL for API
-                const response = await fetch(imageFile.url);
-                const blob = await response.blob();
-                return await fileToDataUrl(
-                  new File([blob], 'image', { type: imageFile.mediaType })
-                );
-              })
-            );
-
+            // Use the blob URLs directly - no need to convert to data URLs
             const result = await editImage({
               prompt,
-              imageUrls,
+              imageUrls: attachmentBlobUrls,
               provider: model,
             });
             imageUrl = result.imageUrl;

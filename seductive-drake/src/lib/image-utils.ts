@@ -75,3 +75,36 @@ export function getMediaTypeFromDataUrl(dataUrl: string): string {
   if (!dataUrl.startsWith('data:')) return 'image/jpeg';
   return dataUrl.match(/^data:([^;]+);base64,/)?.[1] || 'image/jpeg';
 }
+
+/**
+ * Converts a blob URL to a data URL
+ * Works with both regular URLs and data URLs (returns data URLs as-is)
+ */
+export async function urlToDataUrl(url: string): Promise<string> {
+  // If it's already a data URL, return it as-is
+  if (url.startsWith('data:')) {
+    return url;
+  }
+
+  // Fetch the blob URL and convert to data URL
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const file = new File([blob], 'image', { type: blob.type || 'image/png' });
+  return fileToDataUrl(file);
+}
+
+/**
+ * Converts a blob URL to a File object
+ * Works with both regular URLs and data URLs
+ */
+export async function urlToFile(url: string, filename: string): Promise<File> {
+  // If it's a data URL, use existing conversion
+  if (url.startsWith('data:')) {
+    return dataUrlToFile(url, filename);
+  }
+
+  // Fetch the blob URL and convert to File
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new File([blob], filename, { type: blob.type || 'image/png' });
+}

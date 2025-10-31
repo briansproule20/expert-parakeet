@@ -19,10 +19,11 @@ const providers = {
   gemini: handleGoogleGenerate,
 };
 
+// Small limit for JSON payload only
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '4mb',
+      sizeLimit: '1mb',
     },
   },
 };

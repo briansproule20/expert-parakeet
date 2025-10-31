@@ -17,10 +17,11 @@ const providers = {
   gemini: handleGoogleEdit,
 };
 
+// No body size limit needed anymore - we're sending blob URLs, not base64 images
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '4mb',
+      sizeLimit: '1mb', // Small limit for JSON payload with URLs only
     },
   },
 };

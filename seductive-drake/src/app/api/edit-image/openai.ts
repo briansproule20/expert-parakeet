@@ -4,7 +4,7 @@
 
 import { getEchoToken } from '@/echo';
 import OpenAI from 'openai';
-import { dataUrlToFile } from '@/lib/image-utils';
+import { urlToFile } from '@/lib/image-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 
 /**
@@ -32,7 +32,10 @@ export async function handleOpenAIEdit(
   });
 
   try {
-    const imageFiles = imageUrls.map(url => dataUrlToFile(url, 'image.png'));
+    // Convert URLs (blob URLs or data URLs) to File objects
+    const imageFiles = await Promise.all(
+      imageUrls.map(url => urlToFile(url, 'image.png'))
+    );
 
     const result = await openaiClient.images.edit({
       image: imageFiles,

@@ -4,7 +4,7 @@
 
 import { google } from '@/echo';
 import { generateText } from 'ai';
-import { getMediaTypeFromDataUrl } from '@/lib/image-utils';
+import { urlToDataUrl, getMediaTypeFromDataUrl } from '@/lib/image-utils';
 import { ERROR_MESSAGES } from '@/lib/constants';
 
 /**
@@ -15,15 +15,18 @@ export async function handleGoogleEdit(
   imageUrls: string[]
 ): Promise<Response> {
   try {
+    // Convert all URLs (blob URLs or data URLs) to data URLs for Gemini
+    const dataUrls = await Promise.all(imageUrls.map(url => urlToDataUrl(url)));
+
     const content = [
       {
         type: 'text' as const,
         text: prompt,
       },
-      ...imageUrls.map(imageUrl => ({
+      ...dataUrls.map(dataUrl => ({
         type: 'image' as const,
-        image: imageUrl, // Direct data URL - Gemini handles it
-        mediaType: getMediaTypeFromDataUrl(imageUrl),
+        image: dataUrl,
+        mediaType: getMediaTypeFromDataUrl(dataUrl),
       })),
     ];
 
