@@ -4,7 +4,7 @@
 
 import { getEchoToken } from '@/echo';
 import OpenAI from 'openai';
-import { urlToFile } from '@/lib/image-utils';
+import { urlToFile } from '@/lib/image-utils-server';
 import { ERROR_MESSAGES } from '@/lib/constants';
 
 /**

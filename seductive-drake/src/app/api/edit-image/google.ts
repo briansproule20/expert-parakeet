@@ -4,7 +4,7 @@
 
 import { google } from '@/echo';
 import { generateText } from 'ai';
-import { urlToDataUrl, getMediaTypeFromDataUrl } from '@/lib/image-utils';
+import { urlToDataUrl, getMediaTypeFromDataUrl } from '@/lib/image-utils-server';
 import { ERROR_MESSAGES } from '@/lib/constants';
 
 /**
