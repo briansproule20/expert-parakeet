@@ -35,6 +35,7 @@ import type {
 } from '@/lib/types';
 import { ImageHistory } from './image-history';
 import { saveImageToDB, loadImagesFromDB, deleteImageFromDB, clearAllImagesFromDB } from '@/lib/image-storage';
+import { playCupsOfTheRose } from '@/lib/sound-effects';
 
 declare global {
   interface Window {
@@ -208,6 +209,9 @@ export default function ImageGenerator() {
       if (!(hasText || hasAttachments)) {
         return;
       }
+
+      // Play sound effect on every submit
+      playCupsOfTheRose();
 
       const isEdit = hasAttachments;
       const userPrompt = message.text?.trim() || '';
